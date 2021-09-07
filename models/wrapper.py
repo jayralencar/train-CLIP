@@ -39,7 +39,7 @@ class CLIPWrapper(pl.LightningModule):
         if self.trainer.max_steps:
             return self.trainer.max_steps
 
-        dataset_size = len(dataset)
+        dataset_size = len(dataset.dataset)
 
         num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
         if self.trainer.tpu_cores:
@@ -147,7 +147,7 @@ class CLIPWrapper(pl.LightningModule):
             cycle_mult=1.0,
             max_lr=lr,
             min_lr=0,
-            warmup_steps=2000
+            warmup_steps=int(self.num_training_steps*0.2)
         )
 
         return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler}
