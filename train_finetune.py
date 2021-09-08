@@ -19,7 +19,7 @@ def main(hparams):
 
     model = CustomCLIPWrapper(img_encoder, txt_encoder, hparams.minibatch_size, avg_word_embs=True)
     dm = TextImageDataModule.from_argparse_args(hparams, custom_tokenizer=tokenizer)
-    trainer = Trainer.from_argparse_args(hparams, precision=16, max_epochs=32)
+    trainer = Trainer.from_argparse_args(hparams, precision=16, max_epochs=100)
     trainer.fit(model, dm)
 
 
