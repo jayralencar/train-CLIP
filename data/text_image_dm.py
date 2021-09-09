@@ -1,6 +1,7 @@
 # Originally found in https://github.com/lucidrains/DALLE-pytorch
 from pathlib import Path
 from random import randint, choice
+from sklearn.model_selection import train_test_split
 
 import PIL
 import argparse
@@ -146,6 +147,12 @@ class TextImageDataModule(LightningDataModule):
         return parser
     
     def setup(self, stage=None):
+        path = Path(self.folder)
+        TEST_SIZE = 0.2
+        text_files = [*path.glob('**/*.txt')]
+        
+        train_idx, val_idx = train_test_split(list(range(len(text_files))), test_size=TEST_SIZE, random_state=32)
+
         self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio, shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None)
     
     def train_dataloader(self):
