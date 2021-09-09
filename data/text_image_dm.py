@@ -1,6 +1,7 @@
 # Originally found in https://github.com/lucidrains/DALLE-pytorch
 from pathlib import Path
 from random import randint, choice
+from sklearn.model_selection import train_test_split
 
 import PIL
 import argparse
@@ -18,7 +19,8 @@ class TextImageDataset(Dataset):
                  image_size=224,
                  resize_ratio=0.75,
                  shuffle=False,
-                 custom_tokenizer=False
+                 custom_tokenizer=False,
+                 indexes=None
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
@@ -44,7 +46,7 @@ class TextImageDataset(Dataset):
 
         keys = (image_files.keys() & text_files.keys())
 
-        self.keys = list(keys)
+        self.keys = list(keys)[indexes]
         self.text_files = {k: v for k, v in text_files.items() if k in keys}
         self.image_files = {k: v for k, v in image_files.items() if k in keys}
         self.resize_ratio = resize_ratio
@@ -146,10 +148,20 @@ class TextImageDataModule(LightningDataModule):
         return parser
     
     def setup(self, stage=None):
+        path = Path(self.folder)
+        TEST_SIZE = 0.2
+        text_files = [*path.glob('**/*.txt')]
+        
+        train_idx, val_idx = train_test_split(list(range(len(text_files))), test_size=TEST_SIZE, random_state=32)
+        
         self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio, shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None)
+        
     
     def train_dataloader(self):
         return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=self.shuffle, num_workers=self.num_workers, drop_last=True , collate_fn=self.dl_collate_fn)
+    
+    def val_dataloader(self):
+        pass
     
     def dl_collate_fn(self, batch):
         if self.custom_tokenizer is None:
