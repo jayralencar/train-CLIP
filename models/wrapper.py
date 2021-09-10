@@ -8,6 +8,7 @@ import yaml
 import copy
 from cosine_annealing_warmup import CosineAnnealingWarmupRestarts
 from .model import CLIP
+import clip
 
 
 class CLIPWrapper(pl.LightningModule):
@@ -320,6 +321,52 @@ class CustomCLIPWrapper(CLIPWrapper):
 
         Q *= B  # the colomns must sum to 1 so that Q is an assignment
         return Q.t()
+
+    def configure_optimizers(self):
+        lr = self.learning_rate
+
+        optimizer = torch.optim.SGD(
+            self.parameters(),
+            lr=lr,
+            momentum=0.9
+        )
+
+        # Source: https://github.com/openai/CLIP/issues/107
+        # Use pip install 'git+https://github.com/katsura-jp/pytorch-cosine-annealing-with-warmup'
+        lr_scheduler = CosineAnnealingWarmupRestarts(
+            optimizer,
+            first_cycle_steps=self.num_training_steps,
+            cycle_mult=1.0,
+            max_lr=lr,
+            min_lr=0,
+            warmup_steps=int(self.num_training_steps*0.2)
+        )
+
+        return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler}
+
+class CLIPFinetuningWrapper(pl.LightningModule):
+    # Module based on
+    def __init__(self, model_name):
+        super().__init__()
+
+        # Load CLIP
+        self.model, self.preprocess = clip.load(model_name, device=self.device, jit=False)
+        
+        # Prepare for loss calculating
+        self.loss_img = nn.CrossEntropyLoss()
+        self.loss_txt = nn.CrossEntropyLoss()
+
+    def forward(self, *args, **kwargs):
+        pass
+
+    def training_step(self, train_batch, idx):
+        pass
+
+    def validation_step(self, batch, idx):
+        pass
+
+    def test_step(self, batch, idx):
+        pass
 
     def configure_optimizers(self):
         lr = self.learning_rate

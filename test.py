@@ -1,7 +1,3 @@
-from data.text_image_dm import TextImageDataModule
+from models.wrapper import CLIPFinetuningWrapper
 
-dm = TextImageDataModule(folder="./data_dir",batch_size= 1)
-
-dm.setup()
-
-print(len(dm.train_dataloader()))
+model = CLIPFinetuningWrapper("ViT-B/32")
