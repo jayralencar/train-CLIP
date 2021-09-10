@@ -94,7 +94,7 @@ class TextImageDataset(Dataset):
             print(f"Skipping index {ind}")
             return self.skip_sample(ind)
 
-        tokenized_text = description if self.custom_tokenizer else clip.tokenize(description)[0]
+        tokenized_text = description if self.custom_tokenizer else clip.tokenize(description,truncate=True)[0]
 
         try:
             image_tensor = self.image_transform(PIL.Image.open(image_file))
