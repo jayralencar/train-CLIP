@@ -8,6 +8,7 @@ import argparse
 import clip
 import torch
 
+import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms as T
 from pytorch_lightning import LightningDataModule
@@ -19,7 +20,8 @@ class TextImageDataset(Dataset):
                  image_size=224,
                  resize_ratio=0.75,
                  shuffle=False,
-                 custom_tokenizer=False
+                 custom_tokenizer=False,
+                 indexes=None
                  ):
         """Create a text image dataset from a directory with congruent text and image names.
 
@@ -39,13 +41,12 @@ class TextImageDataset(Dataset):
             *path.glob('**/*.png'), *path.glob('**/*.jpg'),
             *path.glob('**/*.jpeg'), *path.glob('**/*.bmp')
         ]
-
         text_files = {text_file.stem: text_file for text_file in text_files}
         image_files = {image_file.stem: image_file for image_file in image_files}
 
         keys = (image_files.keys() & text_files.keys())
-
-        self.keys = list(keys)
+        
+        self.keys = np.array(list(keys))[indexes]
         self.text_files = {k: v for k, v in text_files.items() if k in keys}
         self.image_files = {k: v for k, v in image_files.items() if k in keys}
         self.resize_ratio = resize_ratio
@@ -152,11 +153,25 @@ class TextImageDataModule(LightningDataModule):
         text_files = [*path.glob('**/*.txt')]
         
         train_idx, val_idx = train_test_split(list(range(len(text_files))), test_size=TEST_SIZE, random_state=32)
+<<<<<<< HEAD
 
         self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio, shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None)
+=======
+        
+        self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio,
+                                        shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None, indexes=train_idx)
+        
+        self.dataset_val = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio,
+                                           shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None, indexes=val_idx)
+        
+>>>>>>> 329136a46c9a5184957010e19fbda8983f3a5ac3
     
     def train_dataloader(self):
         return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=self.shuffle, num_workers=self.num_workers, drop_last=True , collate_fn=self.dl_collate_fn)
+    
+    def val_dataloader(self):
+        return DataLoader(self.dataset_val, batch_size=self.batch_size,
+                          shuffle=self.shuffle, num_workers=self.num_workers, drop_last=True , collate_fn=self.dl_collate_fn)
     
     def dl_collate_fn(self, batch):
         if self.custom_tokenizer is None:
