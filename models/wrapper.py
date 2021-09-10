@@ -111,7 +111,7 @@ class CLIPWrapper(pl.LightningModule):
     def validation_step(self, val_batch, idx):
         image, text = val_batch
         image_logits, text_logits = self.forward(image, text)
-        ground_truth = torch.arange(len(image_logits))
+        ground_truth = torch.arange(len(image_logits)).to('cuda:0')
         loss = (F.cross_entropy(image_logits, ground_truth) + F.cross_entropy(text_logits, ground_truth)).div(2)
         self.log('val_loss', loss)
 
