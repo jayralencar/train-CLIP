@@ -153,10 +153,6 @@ class TextImageDataModule(LightningDataModule):
         text_files = [*path.glob('**/*.txt')]
         
         train_idx, val_idx = train_test_split(list(range(len(text_files))), test_size=TEST_SIZE, random_state=32)
-<<<<<<< HEAD
-
-        self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio, shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None)
-=======
         
         self.dataset = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio,
                                         shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None, indexes=train_idx)
@@ -164,7 +160,6 @@ class TextImageDataModule(LightningDataModule):
         self.dataset_val = TextImageDataset(self.folder, image_size=self.image_size, resize_ratio=self.resize_ratio,
                                            shuffle=self.shuffle, custom_tokenizer=not self.custom_tokenizer is None, indexes=val_idx)
         
->>>>>>> 329136a46c9a5184957010e19fbda8983f3a5ac3
     
     def train_dataloader(self):
         return DataLoader(self.dataset, batch_size=self.batch_size, shuffle=self.shuffle, num_workers=self.num_workers, drop_last=True , collate_fn=self.dl_collate_fn)
